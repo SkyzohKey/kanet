@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{9344bdbb-3e7f-41fc-a0dd-8665d75ee146}") = "kanet", "kanet.mdproj", "{D2B8D3ED-1A22-47E9-B61A-EB2C5BD70661}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2B8D3ED-1A22-47E9-B61A-EB2C5BD70661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2B8D3ED-1A22-47E9-B61A-EB2C5BD70661}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2B8D3ED-1A22-47E9-B61A-EB2C5BD70661}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2B8D3ED-1A22-47E9-B61A-EB2C5BD70661}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = kanet.mdproj
+		Policies = $0
+		$0.StandardHeader = $1
+		$1.Text = @ \n
+		$1.inheritsSet = MITX11License
+		$0.ChangeLogPolicy = $2
+		$2.UpdateMode = ProjectRoot
+		$2.MessageStyle = $3
+		$3.LineAlign = 0
+		$2.inheritsSet = Mono
+	EndGlobalSection
+EndGlobal

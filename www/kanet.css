@@ -1,0 +1,89 @@
+body {
+	padding: 0.5em;
+	font-family: Tahoma, sans-serif;
+	font-size: 0.8125em;
+	background-color: #333333;
+}
+div.space {
+	padding: 2em;
+}
+div.banner {
+	padding: 0.5em;
+  border-bottom: 1px dotted #c4c4c4;
+}
+div.banner a{
+	float : right;
+        font-family: Tahoma, sans-serif;
+        font-size: 1.2em;
+        color: #666;
+
+}
+div.content {
+  line-height: 160%;
+  width: 845px;
+  margin-left: auto;
+  margin-right: auto;
+	padding: 1em;
+	background-color: #fff;
+	border: 1px solid #000000;
+}
+div.help {
+	font-family: Tahoma, sans-serif;
+        font-size: 0.8em;
+	font-color: #666;
+	padding: 0em;
+}
+#choice {
+	padding : 1em;
+}
+div.form {
+	border: 1px solid #CCC;
+	border-top : 7px solid #CCC;
+        background-color: #eee;
+	padding: 1em;
+}
+.login {
+  margin-left: auto;
+  margin-right: auto;
+}
+.login_form table {
+padding : 1em;
+border: 1px solid #CCC;
+border-top : 7px solid #CCC;
+
+	background-color: #eee;
+}
+.server_message {
+        font-size: 1.2em;
+  margin-top : 5px;
+  color: #666;
+	vertical-align: middle;
+}
+.message {
+  margin-top : 5px;
+  border: 1px solid #CCC;
+  border-top : 7px solid #CCC;
+  color: #666;
+  background-color: #eee;
+	vertical-align: middle;
+	display: inline;
+}
+h1 {
+        font-size: 1.4em;
+	color: #906;
+  text-decoration: underline;
+
+}
+input {
+  border: 1px solid #c4c4c4;
+  color: #666;
+  background-color: #fff;
+  vertical-align: middle;
+  text-decoration: none;
+  font-size: 100%;
+  cursor: pointer;
+  margin: 1px;
+  padding: 0.125em 0.4em;
+}
+
+

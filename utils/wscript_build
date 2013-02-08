@@ -1,0 +1,1 @@
+bld.install_files('${PREFIX}/bin/', bld.path.ant_glob('**'),  relative_trick=True)

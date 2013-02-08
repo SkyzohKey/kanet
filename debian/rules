@@ -1,0 +1,22 @@
+#!/usr/bin/make -f
+
+CMD=$(shell echo $@ | sed 's/override_//')
+
+%:
+	dh $@
+
+WAF=./waf
+
+override_dh_auto_clean:
+	$(WAF) --nocache distclean
+	rm -rf build
+
+override_dh_auto_configure:
+	$(WAF) --nocache configure --prefix /usr
+
+override_dh_auto_build:
+	$(WAF) --nocache build 
+
+override_dh_auto_install:
+	$(WAF) --nocache install --destdir debian/kanet
+

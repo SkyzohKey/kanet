@@ -1,0 +1,29 @@
+<head>
+  <title>Kanet : captive portal</title>
+	<link rel="stylesheet" href="kanet.css" type="text/css" />
+	<script type="text/javascript" src="./js/jquery-1.3.2.min.js"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+
+<div class="content">
+	<div class="banner">
+		<img class="logo" src="images/logo.png" alt="kanet logo"/>
+	</div>
+	<div class="space">
+	</div>
+		<div class="login" id="login_div" >
+			<form class="login_form" action="../login/" method="post">
+				<center>
+				<table>
+					<tr><td> login  </td><td></td><td> <input autocomplete="off" type="text" name="k_login"></td></tr>
+					<tr><td> password  </td><td></td><td><input autocomplete="off" type="password" name="k_password"></td></tr>
+				    	<tr><td></td><td></td><td style="text-align:right"><input type="submit" value="Login"></td></tr>
+				</table>
+				</center>
+			</form>
+		</div>
+</div>
+</body>
+</html>

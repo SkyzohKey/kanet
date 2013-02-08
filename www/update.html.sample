@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+
+<head>
+        <title>Kanet Captive Portal</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="kanet.css" type="text/css" />
+	<script type="text/javascript" src="./js/jquery-1.3.2.min.js"></script>
+	<script type="text/javascript" src="./js/jquery.cookie.js"></script>
+
+</head>
+<body>
+<script type="text/javascript">
+$(function() {
+	$('a').eq(0).click(function() {
+               $.cookie("kanet", null, { path: '/' });
+		window.location = "login.html";
+            });
+});
+</script>
+<div class="content">
+        <div class="banner">
+                <img class="logo" src="images/logo.png" alt="kanet logo"/>
+		<a href="#">logout</a>
+        </div>
+	<center>
+        <div class="message">
+		<img class="logo" src="images/warning.png" alt="warning"/>
+       		Keep this window open to allow connections.
+		<img class="logo" src="images/warning.png" alt="warning"/>
+	</div>
+        <div class="server_message">
+		<h1>Information</h1>
+		<span id="ServerMessage" />
+	</div>
+	</center>
+	<div class="space" ></div>
+</div>
+<script type="text/javascript" src="./js/kanet.js"></script>
+</body>
+</html>
+

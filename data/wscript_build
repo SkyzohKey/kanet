@@ -1,0 +1,7 @@
+#! /usr/bin/env python
+# encoding: utf-8
+prefix = bld.env['PREFIX']
+if prefix == '/usr' or prefix == '/usr/' :
+        bld.install_files ('/var/lib/kanet','kanet.sqlite')
+else:
+        bld.install_files ('${PREFIX}/var/lib/kanet','kanet.sqlite')

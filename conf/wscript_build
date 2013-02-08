@@ -1,0 +1,8 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+prefix = bld.env['PREFIX']
+if prefix == '/usr' or prefix == '/usr/' :
+	bld.install_files ('/etc/kanet/', 'kanet.conf')
+else:
+	bld.install_files ('${PREFIX}/etc/kanet/', 'kanet.conf')

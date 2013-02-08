@@ -1,0 +1,6 @@
+#! /usr/bin/env python
+# encoding: utf-8
+www_dir = '${PREFIX}/share/kanet'
+#bld.install_files(www_dir, '*html')
+#bld.install_files(www_dir, '*css')
+bld.install_files(www_dir, bld.path.ant_glob('**'),  relative_trick=True)

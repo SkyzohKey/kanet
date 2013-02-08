@@ -1,0 +1,4 @@
+#!/bin/bash
+IP="$1"
+echo -n "Login : "
+tac /var/log/kanet/access.log | grep $IP -m 1 | awk '{print $8}'

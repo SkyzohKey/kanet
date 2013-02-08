@@ -1,0 +1,9 @@
+#!/bin/bash
+IP="$1"
+echo -n "Login : "
+LOGIN=`tac /var/log/kanet/access.log | grep UPDATE | grep $IP -m 1 | awk '{print $8}'`
+echo -n $LOGIN
+#echo -n ' '
+#IP=`tac /var/log/kanet/access.log | grep UPDATE | grep $LOGIN -m 1 | awk '{print $10}'`
+echo -n  IP : $IP 
+grep -A 9 "$IP " /var/lib/dhcp3/dhcpd.leases | sed -n -e 4p -e 9p -e 7p | sed 'N;s/[;\n]//g' | sed 'N;s/[;\n]//g' | sed 's/hardware ethernet//g'

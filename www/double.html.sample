@@ -1,0 +1,84 @@
+<head>
+  <title>Kanet : captive portal</title>
+	<link rel="stylesheet" href="kanet.css" type="text/css" />
+	<script type="text/javascript" src="./js/jquery-1.3.2.min.js"></script>
+	<script type="text/javascript" src="./js/jquery.cookie.js"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('#choice_button').click(function() {
+		var date = new Date();
+                date.setTime(date.getTime() + (3 * 24 * 60 * 60 * 1000));
+		var val = $("input[@name='radio_choice']:checked").val();
+		var check = $('#permanent_checkbox').is(':checked');
+		if(check) { 
+                        $.cookie("kanet-choice", val, { path: '/', expires: date });
+                }
+		if(val == "cas") {
+            		window.location="https://auth.univ-metz.fr/index.jsp?service=http://localhost:8013/login_cas/";
+        	}
+        	if(val == "invit") {
+            		$('#choice').hide();
+            		$('#login_div').show(); 
+        	}
+	});
+	$('#login_div').hide();
+	check_cookie();
+});
+function  check_cookie(){
+        var value = $.cookie("kanet-choice");
+        if(value == "cas") {
+            window.location="https://auth.univ-metz.fr/index.jsp?service=http://localhost:8013/login_cas/";
+        }
+        if(value == "invit") {
+            $('#choice').hide();
+            $('#login_div').show(); 
+        }
+}
+</script>
+<div class="content">
+	<div class="banner">
+		<img class="logo" src="images/logo.png" alt="kanet logo"/>
+	</div>
+	<div class="space">
+	</div>
+                <div id="choice">
+			<div class="form">
+				<input type="radio" name="radio_choice" value="cas" checked="true"> J'ai un compte à l'université Paul Verlaine - Metz / I have a Paul Verlaine - Metz university account.</input><br />
+                               	<input type="radio" name="radio_choice" value="invit"> J'ai un compte invité / I have a guest account.</input><br />
+                        <br/>
+                        <center>
+                        <input type="checkbox" name="permanent_checkbox" >Mémoriser mon choix/Remember my choice</input><br />
+                        <input type="button" id="choice_button" value="Valider" />
+                        </center>
+			</div>
+			<div class="help">
+                        <hr />
+                        Je suis étudiant et je souhaite activer mon compte,<br />
+                        I am a student and I want to activate my account : <a href="https://www.umail.univ-metz.fr/signup.html">Ici/Here</a> <br/>
+                        <br />
+                        Je suis de passage à l'université je souhaiterais bénéficier d'un accès au réseau sans-fil :<br/>
+                        Je dois m'adresser à la personne qui m'invite, elle peut à travers son ENT (Espace Numérique de travail) activer un compte temporaire.<br />
+                        Present for few days in Paul Verlaine - Metz university I would like to use wireless network services : <br />
+                        I need to ask the person who invites me to create a temporary account using its Portal.<br/>
+			</div>
+
+                </div>
+		<div class="login" id="login_div" >
+			<form class="login_form" action="../login/" method="post">
+				<center>
+				<table>
+					<tr><td> login  </td><td></td><td> <input autocomplete="off" type="text" name="k_login"></td></tr>
+					<tr><td> password  </td><td></td><td><input autocomplete="off" type="password" name="k_password"></td></tr>
+				    	<tr><td></td><td></td><td style="text-align:right"><input type="submit" value="Login"></td></tr>
+				</table>
+				</center>
+			</form>
+		</div>
+</div>
+</body>
+</html>

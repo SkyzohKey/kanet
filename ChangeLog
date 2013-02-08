@@ -1,0 +1,39 @@
+2010-12-15  Cyrille Colin  <colin@univ-metz.fr>
+
+	* wscript: change vala dependencies to libvala-0.12.
+
+2010-05-12  Cyrille Colin  <colin@univ-metz.fr>
+
+	* src/WebServers.vala: send update_error_msg when update
+	failed.
+
+2010-05-08  Cyrille Colin  <colin@univ-metz.fr>
+
+	* kanet: first release 0.1.
+
+2010-05-08  Cyrille Colin  <colin@univ-metz.fr>
+
+	* src/WebServers.vala: add 10s timeout for socket.
+
+2010-05-06  Cyrille Colin  <colin@univ-metz.fr>
+
+	* src/WebServers.vala: add client.get_socket().disconnect()
+	for aborted connection
+
+2010-05-06  Cyrille Colin  <colin@univ-metz.fr>
+
+	* src/KanetApplication.vala: add New session log.
+
+2010-05-06  Cyrille Colin  <colin@univ-metz.fr>
+
+	* wscript: add DEBUG const to default context.
+	* src/WebServers.vala: use DEBUG 
+
+2010-05-06  Cyrille Colin  <colin@univ-metz.fr>
+
+	* src/Log.vala: Fix segfault due to unprotect format string.
+	(Patch by Aurélien Suardi)
+
+2010-05-03  Cyrille Colin  <colin@univ-metz.fr>
+
+	* kanet: first entry.

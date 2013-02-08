@@ -1,0 +1,13 @@
+Source: kanet
+Section: net
+Priority: extra
+Maintainer: cyrille <colin@univ-metz.fr>
+Build-Depends: debhelper (>= 7), libsqlite3-dev, libvala-dev, libjson-glib-dev, libglib2.0-dev, valac, libgee-dev, libsoup2.4-dev, libradiusclient-ng-dev, libnetfilter-conntrack-dev, libnetfilter-queue-dev, libdaemon-dev, libmysqlclient-dev
+Standards-Version: 3.8.1
+Homepage: http://code.google.com/p/kanet
+
+Package: kanet
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, shared-mime-info, libsqlite3-0, libjson-glib-1.0-0, libglib2.0-0, libgee2, libsoup2.4-1, libradiusclient-ng2, libnetfilter-conntrack3, libnetfilter-queue1, libmysqlclient15 | libmysqlclient16
+Description: The firewall/captive portal.
+ kanet is a firewall/captive portal based on netfilter NFQUEUE. it acts as a firewall and allows captive portal authentication via CAS(Central Authentication Service), radius, ...

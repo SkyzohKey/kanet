@@ -1,0 +1,50 @@
+kanet (0.2-6) unstable; urgency=low
+
+  * Adapt to vala-0.18
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Wed, 21 mars 2012 15:44:05 +0200
+
+kanet (0.2-5) unstable; urgency=low
+
+  * Multiple integration
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Wed, 21 mars 2012 15:44:05 +0200
+
+kanet (0.2-4) unstable; urgency=low
+
+  * KanetApplication.vala : Add Support for Mysql Database
+  * KanetMysql.vala : class for Mysql Database 
+
+ -- Raphael RIGNIER <raphael@rignier.com>  Mon, 19 March 2012 15:44:05 +0200
+
+kanet (0.2-3) unstable; urgency=low
+
+  * rest/json : webservices patch
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Wed, 24 november 2010 15:44:05 +0200
+
+kanet (0.2-2) unstable; urgency=low
+
+  * utils : add some scripts
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Wed, 24 november 2010 15:44:05 +0200
+
+kanet (0.2-1) unstable; urgency=low
+
+  * kanet.init : rewrite some rules
+  * control : add missing dependencies.
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Thu, 11 november 2010 15:44:05 +0200
+
+kanet (0.1-2) unstable; urgency=low
+
+  * kanet.init : rewrite some rules
+  * control : add missing dependencies.
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Mon, 11 may 2010 15:44:05 +0200
+
+kanet (0.1-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Cyrille Colin <colin@univ-metz.fr>  Mon, 29 Mar 2010 15:44:05 +0200

@@ -1,0 +1,8 @@
+#!/bin/bash
+MAC="$1"
+IP=`arp | awk '{if ($3=="'"$MAC"'") print $1}'`
+echo
+echo Adresse IP : $IP
+echo
+grep -A 9 $IP /var/lib/dhcp3/dhcpd.leases
+kanet-ip $IP
