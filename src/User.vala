@@ -42,23 +42,26 @@ namespace Kanet {
 				return true;
 			return false;			
 		}
-		public string to_json() {
-			Json.Object object = new Json.Object();
+		public Json.Object getJsonObject() {
+		  Json.Object object = new Json.Object();
 			object.set_string_member ("login", login);
 			//if(up_bytes != null)
-				object.set_int_member ("up_bytes", (int64)up_bytes );
+			object.set_int_member ("up_bytes", (int64)up_bytes );
 			//if(down_bytes != null)
-				object.set_int_member ("down_bytes", (int64)down_bytes );
+			object.set_int_member ("down_bytes", (int64)down_bytes );
 			//if(time_quota != null)
-				object.set_int_member ("time_quota", (int)time_quota );
+			object.set_int_member ("time_quota", (int)time_quota );
 			//if(bytes_quota != null)
-				object.set_int_member ("bytes_quota", (int64)bytes_quota );
-				object.set_int_member ("duration", (int)duration );
-				object.set_int_member ("group", (int)group);
+			object.set_int_member ("bytes_quota", (int64)bytes_quota );
+			object.set_int_member ("duration", (int)duration );
+			object.set_int_member ("group", (int)group);
+			return object;
+		}
+		public string to_json() {
 			Json.Generator jg = new Json.Generator();
 			Json.Node node = new Json.Node(Json.NodeType.OBJECT);
-			node.set_object(object);
-			jg.set_root(node);
+      node.set_object(getJsonObject());
+      jg.set_root(node);
 			return jg.to_data(null);
 		}
 		public static User? user_from_json(string json) {
@@ -97,12 +100,8 @@ namespace Kanet {
 			Json.Object object = new Json.Object();
 			Json.Array array = new Json.Array();
 			foreach(string key in this.users.keys) {
-				Json.Object _node = new Json.Object();
-				_node.set_string_member ("id", key);
-				array.add_object_element(_node);
+				array.add_object_element(get_user(key).getJsonObject());
 			}
-			
-			
 			object.set_array_member("users", array);
 			Json.Generator jg = new Json.Generator();
 			Json.Node node = new Json.Node(Json.NodeType.OBJECT);
