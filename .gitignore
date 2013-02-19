@@ -1,3 +1,6 @@
 build/
 .waf*
 .lock-wscript
+*~
+*bz2
+.lock*

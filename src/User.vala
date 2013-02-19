@@ -20,20 +20,16 @@ namespace Kanet {
         	the login associated with the user, need to be unique.
         */
         public string login {get; private set;}
-    public uint32 duration {get; set; default=0;}
+    	public uint32 duration {get; set; default=0;}
 
         public uint8 group { get; set;}
         /*
         	quota stuff
         */
-    public uint64 up_bytes {get; set; default=0;}
-    public uint64 down_bytes {get; set; default=0;}
-    public uint32 time_quota {get; set; default=0;}
-    public uint64 bytes_quota {get; set; default=0;}
-        /*
-        	Devices associated to a user
-        */
-    public ArrayList<Device> devices {get;  private set; default = new ArrayList<Device>(); }
+		public uint64 up_bytes {get; set; default=0;}
+		public uint64 down_bytes {get; set; default=0;}
+		public uint32 time_quota {get; set; default=0;}
+		public uint64 bytes_quota {get; set; default=0;}
 
         public bool is_over_quota() {
             if(bytes_quota != 0 && bytes_quota < (up_bytes + down_bytes))

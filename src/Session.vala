@@ -11,14 +11,10 @@ namespace Kanet {
 
     public class Session : Object {
 
-        const long KANET_SESSION_TIMEOUT = 30; // 30 seconds
-        const long WEB_SESSION_TIMEOUT = 2 * 60 * 60; // 2 hours
-
-        public Session(User user, uint32 ip_src, Device? device) {
+        public Session(User user, uint32 ip_src) {
             this.start_time = TimeVal();
             this.ip_src = ip_src;
             this.user = user;
-            this.device = device;
         }
         /*
         	The User
@@ -27,7 +23,7 @@ namespace Kanet {
         /*
         	Session id used in cookie.
         */
-    public string session_id {get; set; default = Utils.get_id();}
+    	public string session_id {get; set; default = Utils.get_id();}
         /*
         	Session start time
         */
@@ -38,10 +34,6 @@ namespace Kanet {
         public TimeVal last_seen { get; set; }
 
         /*
-        	As a user could be connected from many devices a session is associated with it.
-        */
-        public Device? device { get; set;}
-        /*
         	Ip source
         */
         public uint32 ip_src{get; private set;}
@@ -51,15 +43,15 @@ namespace Kanet {
         public uint32 mark {get ; set; }
         /*
         	To open rules, a client must send update regularly, pass the kanet session timeout
-        	we considere that user is disconnected and no acls should ne open
+        	we considere that user is disconnected and no acls should be open
         */
-        public bool is_kanet_session_valid() {
+        public bool is_kanet_session_valid(long KANET_SESSION_TIMEOUT) {
             return (TimeVal().tv_sec - last_seen.tv_sec) < KANET_SESSION_TIMEOUT;
         }
         /*
         	Web session means the time a user need to re-authenticate
         */
-        public bool is_web_session_valid() {
+        public bool is_web_session_valid(long WEB_SESSION_TIMEOUT) {
             return (TimeVal().tv_sec - start_time.tv_sec) < WEB_SESSION_TIMEOUT;
         }
         public string to_json() {
@@ -97,19 +89,19 @@ namespace Kanet {
             s.last_seen = TimeVal();
             kerrorlog("Update session" +s.to_json());
         }
-        public bool is_kanet_session_valid (uint32 ip_src, out Session session) {
+        public bool is_kanet_session_valid (uint32 ip_src, long KANET_SESSION_TIMEOUT, out Session session) {
             if(!sessions.has_key(ip_src)) {
                 kerrorlog("No session exists for this IP : " + get_ip_from_uint32(ip_src));
                 return false;
             }
             session = sessions.get(ip_src);
-            return session.is_kanet_session_valid();
+            return session.is_kanet_session_valid(KANET_SESSION_TIMEOUT);
         }
-        public bool is_web_session_valid(uint32 ip_src, string id, out Session session) {
+        public bool is_web_session_valid(uint32 ip_src, string id, long WEB_SESSION_TIMEOUT, out Session session) {
             if(!sessions.has_key(ip_src))
                 return false;
             Session s = sessions.get(ip_src);
-            if(s.session_id == id && s.is_web_session_valid()) {
+            if(s.session_id == id && s.is_web_session_valid(WEB_SESSION_TIMEOUT)) {
                 session = s;
                 return true;
             }

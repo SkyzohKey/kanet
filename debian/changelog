@@ -1,3 +1,9 @@
+kanet (0.4) unstable; urgency=low
+
+  * Major changes : upgrade carrefully as configuration file and beahaviour have changed
+
+ -- Cyrille Colin <cyrille.colin@univ-lorraine.fr>  Wed, 20 feb 2012 15:44:05 +0200
+
 kanet (0.2-6) unstable; urgency=low
 
   * Adapt to vala-0.18

@@ -10,7 +10,10 @@ using Kanet.Log;
 namespace Kanet {
 
     public class KanetApplication : Object {
-
+    
+        private long KANET_SESSION_TIMEOUT = 30; // 30 seconds
+        private long WEB_SESSION_TIMEOUT = 2 * 60 * 60; // 2 hours
+        
         private uint64 queue_callback_counter = 0;
 
         private Acls blacklist_acls = new Acls(AclType.BLACKLIST);
@@ -33,15 +36,19 @@ namespace Kanet {
         public KanetApplication() {
 
             klog("Kanet Application start ...");
-
+            /* 
+            	Open database
+             */
+            database = new KBaseSqlite(CONF.get_configuration_value("sqlite_connection_string"));
             /*
             	Load from config file = persistent acls
             */
-            blacklist_acls.load_acls_from_config_file();
-            open_acls.load_acls_from_config_file();
-            default_acls.load_acls_from_config_file();
+            blacklist_acls.load_acls_from_db(database);
+            open_acls.load_acls_from_db(database);
+            default_acls.load_acls_from_db(database);
 
-            blacklist_users = CONF.get_blacklist_users();
+            blacklist_users = database.get_blacklist_users_from_db();
+            
 
             admins = CONF.get_configuration_value("admins").split(",");
             // Load authentication module
@@ -61,27 +68,7 @@ namespace Kanet {
             } catch (ThreadError e) {
                 kerrorlog("Create queue thread error : " + e.message,KLOG_LEVEL.ERROR);
             }
-
-            switch ( CONF.get_configuration_value("database") ) {
-            case "sqlite":
-                database = new KBaseSqlite(CONF.get_configuration_value("sqlite_connection_string"));
-                break;
-            case "mysql":
-                string host = CONF.get_configuration_value("mysql_host");
-                string user = CONF.get_configuration_value("mysql_user");
-                string pwd = CONF.get_configuration_value("mysql_pwd");
-                string db =   CONF.get_configuration_value("mysql_database");
-                int port =  int.parse(CONF.get_configuration_value("mysql_port"));
-
-                database = new KBaseMysql( host, user, pwd,db,port);
-                break;
-            default:
-                kerrorlog("Bad database type in kanet.conf");
-                break;
-            }
-
-            //TODO load auto_blacklist
-
+            
             /*
             	create websersers and connect callback
             */
@@ -133,49 +120,54 @@ namespace Kanet {
         	5 - No Permissions    mark as 0x0
         */
         public uint32 nfqueue_cb (uint32 ipdst, uint32 ipsrc, int destport) {
-
-            this.queue_callback_counter++;
-
-            klog(@"Callback $queue_callback_counter $(get_ip_from_uint32(ipdst))-$(get_ip_from_uint32(ipsrc)):$destport");
-            // check BlacklistAcls and reject
-            if(this.blacklist_acls.is_match(ipdst,destport)) {
-                klog(@"REJECT BLACKLIST ACL : $(get_ip_from_uint32(ipdst)):$destport");
-                return 1;
+			try {
+		        this.queue_callback_counter++;
+			
+		        klog(@"Callback $queue_callback_counter $(get_ip_from_uint32(ipdst))-$(get_ip_from_uint32(ipsrc)):$destport");
+		        // check BlacklistAcls and reject
+		        if(this.blacklist_acls.is_match(ipdst,destport)) {
+		            klog(@"REJECT BLACKLIST ACL : $(get_ip_from_uint32(ipdst)):$destport");
+		            return 1;
+		        }
+		        // check OpenAcls, open acls as marked as FFFFFFFF
+		        if(this.open_acls.is_match(ipdst, destport)) {
+		            klog(@"ACCEPT OPEN ACL : $(get_ip_from_uint32(ipdst)):$destport");
+		            return uint32.MAX;
+		        }
+		        // check session
+		        Session session = null;
+		        if(!this.sessions.is_kanet_session_valid(ipsrc, KANET_SESSION_TIMEOUT, out session)) {
+		            klog(@"REJECT $(get_ip_from_uint32(ipdst)):$destport NO TICKET");
+		            return 0;
+		        }
+		        // check default
+		        if(this.default_acls.is_match(ipdst, destport)) {
+		            string login = (session.user).login;
+		            kaccesslog(@"ACCEPT $(get_ip_from_uint32(ipdst)):$destport MARK=$(session.mark) DEFAULTACLS - $login");
+		            return session.mark;
+		        }
+		        klog(@"NO RULES for $(get_ip_from_uint32(ipdst)):$destport RETURN  0");
+            } catch(Error e) {
+            	kerrorlog("an error occured in nf_queue_callback");
             }
-            // check OpenAcls, open acls as marked as FFFFFFFF
-            if(this.open_acls.is_match(ipdst, destport)) {
-                klog(@"ACCEPT OPEN ACL : $(get_ip_from_uint32(ipdst)):$destport");
-                return uint32.MAX;
-            }
-            // check session
-            Session session = null;
-            if(!this.sessions.is_kanet_session_valid(ipsrc, out session)) {
-                klog(@"REJECT $(get_ip_from_uint32(ipdst)):$destport NO TICKET");
-                return 0;
-            }
-            // TODO check auto blacklist acl
-
-            // check default
-            if(this.default_acls.is_match(ipdst, destport)) {
-                string login = (session.user).login;
-                kaccesslog(@"ACCEPT $(get_ip_from_uint32(ipdst)):$destport MARK=$(session.mark) DEFAULTACLS - $login");
-                return session.mark;
-            }
-            klog(@"NO RULES for $(get_ip_from_uint32(ipdst)):$destport RETURN  0");
-            return 0;
+           	return 0;
         }
         private uint32 conntrack_callback (uint32 ip_src, uint32 mark, uint32 rec_bytes, uint32 send_bytes) {
-            TimeVal start_time = TimeVal();
-            Session session = null;
-            this.sessions.is_kanet_session_valid(ip_src, out session);
-            if(session != null) {
-                mutex.lock ();
-                session.user.down_bytes += rec_bytes;
-                session.user.up_bytes += send_bytes;
-                mutex.unlock ();
-                database.update_user(session.user);
+	        try {
+		        TimeVal start_time = TimeVal();
+		        Session session = null;
+		        this.sessions.is_kanet_session_valid(ip_src, KANET_SESSION_TIMEOUT, out session);
+		        if(session != null) {
+		            mutex.lock ();
+		            session.user.down_bytes += rec_bytes;
+		            session.user.up_bytes += send_bytes;
+		            mutex.unlock ();
+		            database.update_user(session.user);
+		        }
+		        klog(@"received conntrack mark:$mark rec:$rec_bytes, $send_bytes updated in " + (TimeVal().tv_usec - start_time.tv_usec).to_string());
+            } catch(Error e) {
+            	kerrorlog("an error occured in nf_conntrack_callback");
             }
-            klog(@"received conntrack mark:$mark rec:$rec_bytes, $send_bytes updated in " + (TimeVal().tv_usec - start_time.tv_usec).to_string());
             return 0;
         }
         private bool check_auth(string login, string password, string domain, string ip, out uint8 group_mark) {
@@ -253,7 +245,7 @@ namespace Kanet {
         private Session start_session (string login, string ip_address, uint8 group_mark) {
             TimeVal start_time = TimeVal();
             User u = get_user_with_login(login);
-            Session s = new Session(u, Utils.get_ip(ip_address), null);
+            Session s = new Session(u, Utils.get_ip(ip_address));
             s.mark = Utils.get_mark(ip_address);
             sessions.add_session(s);
             database.save_session_to_db(s);
@@ -287,7 +279,7 @@ namespace Kanet {
             User user = null;
             Session session = database.get_session_from_db(id, out user);
             if(session != null) {
-                if(!session.is_web_session_valid()) {
+                if(!session.is_web_session_valid(WEB_SESSION_TIMEOUT)) {
                     session = null;
                     return false;
                 }
@@ -325,11 +317,11 @@ namespace Kanet {
             return message;
         }
         private bool is_web_session_valid(uint32 ip_src, string id, out Session session) {
-            return sessions.is_web_session_valid(ip_src, id, out session);
+            return sessions.is_web_session_valid(ip_src, id, WEB_SESSION_TIMEOUT, out session);
         }
         private Session? get_valid_web_session(uint32 ip_src, string id) {
             Session s = null;
-            sessions.is_web_session_valid(ip_src, id, out s);
+            sessions.is_web_session_valid(ip_src, id, WEB_SESSION_TIMEOUT,out s);
             return s;
         }
         // acls
@@ -358,7 +350,7 @@ namespace Kanet {
             return "";
         }
         private void delete_acl(string id) {
-            blacklist_acls.remove_acl(id);
+            //blacklist_acls.remove_acl(id);
         }
         private void create_acl(string message) {
             Acl a = Acl.get_acl_from_json(message);

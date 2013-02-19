@@ -1,0 +1,11 @@
+
+bld.shlib(
+        features = 'cc cshlib',
+        packages = 'KanetAuthModule radiusclient gee-1.0 gmodule-2.0 glib-2.0 ',
+        uselib = 'radiusclient-ng GLIB',
+        includes = '../include',
+	source   = 'RadiusAuthModule.vala',
+        target = 'kanet-radiusclient',
+        vapi_dirs='../vapi/ .'
+        )
+

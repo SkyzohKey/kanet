@@ -7,6 +7,8 @@ using Kanet.Utils;
 
 namespace Kanet {
     public interface KBase : GLib.Object {
+		
+		public abstract void close();
         /*
         	Users
         */
@@ -24,16 +26,13 @@ namespace Kanet {
         /*
         	Acls
         */
-        public abstract ArrayList<string> get_acls_from_db(AclType type) ;
+        public abstract ArrayList<Acl> get_acls_from_db(AclType type) ;
         public abstract void remove_acl(string id) ;
         public abstract Acl? get_acl_from_db(string id);
+        public abstract void save_acl_to_db(Acl acl);
         /*
         	blacklist_user
         */
-        public abstract ArrayList<BlacklistUser> get_blacklist_users_from_db();
-        /*
-        	auto_blacklist_acls
-        */
-        public abstract ArrayList<AutoBlacklistAcl> get_auto_blacklist_acls_from_db();
+        public abstract HashMap<string,BlacklistUser> get_blacklist_users_from_db();
     }
 }

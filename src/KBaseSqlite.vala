@@ -18,6 +18,9 @@ namespace Kanet {
                 kerrorlog("Can't open database : " + db.errmsg (),KLOG_LEVEL.ERROR);
             }
         }
+        public void close() {
+			
+		}
         /*
         	Users
         */
@@ -71,20 +74,20 @@ namespace Kanet {
         public Session? get_session_from_db (string id, out User? user) {
             Sqlite.Statement stmt;
             int rc;
-            string sql = @"select device, login, mark, start_time, ip_src from sessions where id='$(id)' LIMIT 1;";
+            string sql = @"select login, mark, start_time, ip_src from session where id='$(id)' LIMIT 1;";
             if((rc = db.prepare (sql, -1, out stmt, null)) == 1)
                 return null;
             rc = stmt.step();
             if(rc == Sqlite.ROW) {
-                string login = stmt.column_text(1);
+                string login = stmt.column_text(0);
                 user = get_user_from_db (login);
                 if(user == null)
                     return null;
-                Session s = new  Session(user, stmt.column_int(4), null);
+                Session s = new  Session(user, stmt.column_int(3));
                 s.session_id = id;
-                s.mark = stmt.column_int(2);
+                s.mark = stmt.column_int(1);
                 TimeVal t = TimeVal();
-                t.tv_sec = (long)stmt.column_int64(3);
+                t.tv_sec = (long)stmt.column_int64(2);
                 s.start_time = t;
                 return s;
             }
@@ -94,8 +97,8 @@ namespace Kanet {
         public void remove_session(Session s) {}
         public void save_session_to_db(Session s) {
             int rc;
-            string sql = @"insert into sessions ('id','ip_src','mark','start_time','login') values ('$(s.session_id)',$(s.ip_src),$(s.mark),$(s.start_time.tv_sec),'$(s.user.login)');";
-            klog(sql);
+            string sql = @"insert into session ('id','ip_src','mark','start_time','login') values ('$(s.session_id)',$(s.ip_src),$(s.mark),$(s.start_time.tv_sec),'$(s.user.login)');";
+            klog(sql, KLOG_LEVEL.DEBUG);
             if ((rc = db.exec(sql)) == 1) {
                 kerrorlog ("SQL error: "+ db.errmsg ());
             }
@@ -103,39 +106,67 @@ namespace Kanet {
         /*
         	Acls
         */
-        public ArrayList<string> get_acls_from_db(AclType type) {
-            ArrayList<string> acls = new ArrayList<string>();
+        public ArrayList<Acl> get_acls_from_db(AclType type) {
+            ArrayList<Acl> acls = new ArrayList<Acl>();
             Sqlite.Statement stmt;
             int rc;
-            string sql = @"select id from acls where type=$type;";
+            string sql = @"select address,ipaddresses,id,label,port,type from acl where type=$((int)type);";
+            klog(sql, KLOG_LEVEL.DEBUG);
             if((rc = db.prepare (sql, -1, out stmt, null)) == 1) {
                 kerrorlog("get_acls_from_db() :" + db.errmsg());
                 return acls;
             }
             while((rc = stmt.step()) == Sqlite.ROW) {
-                acls.add(stmt.column_text(0));
+            	Acl a = new Acl();
+            	a.address = stmt.column_text(0);
+            	a.setIpAddressesFromString(stmt.column_text(1));
+            	a.id = stmt.column_text(2);
+            	a.label = stmt.column_text(3);
+            	a.port = stmt.column_int(4);
+            	a.acl_type = (AclType)stmt.column_int(5);
+                acls.add(a);
             }
             return acls;
         }
 
         public void remove_acl(string id) {
+			 string sql = @"delete from acl where id ='$(id)';";
+             db.exec(sql);
         }
 
         public Acl? get_acl_from_db(string id) {
+        	Sqlite.Statement stmt;
+            int rc;
+            string sql = @"select address,ipaddresses,id,label,port,type from acl where id='$(id)' LIMIT 1;";
+            klog(sql, KLOG_LEVEL.DEBUG);
+            if((rc = db.prepare (sql, -1, out stmt, null)) == 1)
+                return null;
+            rc = stmt.step();
+            if(rc == Sqlite.ROW) {
+            	Acl a = new Acl();
+            	a.address = stmt.column_text(0);
+            	a.setIpAddressesFromString(stmt.column_text(1));
+            	a.id = stmt.column_text(2);
+            	a.label = stmt.column_text(3);
+            	a.port = stmt.column_int(4);
+            	a.acl_type = (AclType)stmt.column_int(5);
+                return a;
+            }
             return null;
+        }
+        public void save_acl_to_db(Acl acl) {
+        	int rc;
+			string sql = @"insert into acl ('address', 'id', 'label', 'port', 'type', 'ipaddresses') values ('$(acl.address)', '$(acl.id)','$(acl.label)',$(acl.port), $((int)acl.acl_type), '$(acl.getIpAddressesToString())');";
+			klog(sql, KLOG_LEVEL.DEBUG);
+			if ((rc = db.exec(sql)) == 1) {
+				kerrorlog ("SQL error: "+ db.errmsg ());
+			}
         }
         /*
         	blacklist_user
         */
-        public ArrayList<BlacklistUser> get_blacklist_users_from_db() {
-            ArrayList<BlacklistUser> list = new ArrayList<BlacklistUser>();
-            return list;
-        }
-        /*
-        	auto_blacklist_acls
-        */
-        public ArrayList<AutoBlacklistAcl> get_auto_blacklist_acls_from_db() {
-            ArrayList<AutoBlacklistAcl> list = new ArrayList<AutoBlacklistAcl>();
+        public HashMap<string,BlacklistUser> get_blacklist_users_from_db() {
+            HashMap<string,BlacklistUser> list = new HashMap<string,BlacklistUser>();
             return list;
         }
     }

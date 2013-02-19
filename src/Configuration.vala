@@ -82,54 +82,6 @@ namespace Kanet.Conf {
             }
             return true;
         }
-        /*
-        	Load persistent Acls from config file
-        */
-        public ArrayList<Acl> get_acls (string acls_group) {
-            Parser parser = new Parser();
-            ArrayList<Acl> acls = new ArrayList<Acl>();
-            try {
-                parser.load_from_file (config_filename);
-                var n = parser.get_root().get_object();
-                foreach (var node in n.get_array_member(acls_group).get_elements ()) {
-                    var _acl = node.get_object ();
-                    Acl a = new Acl();
-                    if(_acl.has_member("port"))
-                        a.port = (int)_acl.get_int_member ("port");
-                    if(_acl.has_member("address"))
-                        a.address = _acl.get_string_member ("address");
-                    a.persistent = true;
-                    acls.add(a);
-                }
-            } catch (Error e) {
-                kerrorlog(e.message);
-            }
-            return acls;
-        }
-        /*
-        	Load persistent blacklist users from config file
-        */
-        public HashMap<string,BlacklistUser> get_blacklist_users () {
-            Parser parser = new Parser();
-            HashMap<string,BlacklistUser> hash = new HashMap<string,BlacklistUser>();
-            try {
-                parser.load_from_file (config_filename);
-                var n = parser.get_root().get_object();
-                foreach (var node in n.get_array_member("blacklist_users").get_elements ()) {
-                    var _u = node.get_object ();
-                    if(!_u.has_member("login"))
-                        continue;
-                    BlacklistUser u = new BlacklistUser(_u.get_string_member ("login"));
-                    if(_u.has_member("message"))
-                        u.message = _u.get_string_member ("message");
-                    u.persistent = true;
-                    hash.set(u.login,u);
-                }
-            } catch (Error e) {
-                kerrorlog(e.message);
-            }
-            return hash;
-        }
     }
 
 

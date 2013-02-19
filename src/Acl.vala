@@ -26,11 +26,11 @@ namespace Kanet {
         /*
         	unique id
         */
-    public string id {set; get; default = Utils.get_id(6); }
+    	public string id {set; get; default = Utils.get_id(8); }
         /*
         	Acl Type
         */
-        public string acl_type {set; get; }
+        public AclType acl_type {set; get; }
         /*
         	a label associated with an acl
         */
@@ -38,39 +38,80 @@ namespace Kanet {
         /*
         	a string represents address hostname or ip
         */
-        public string? address {get; set; }
+        private string? _address;
+        public string? address {
+			get {
+				return this._address;
+				}
+			set {
+				resolveAddress(value);
+				this._address = value;
+			} 
+		}
         /*
         	ip port
         */
-    public int port {get; set; default = 0;}
+    	public int port {get; set; default = 0;}
         /*
-        	Not yet implemented, the goal is to load computed acls from a file
-        	because the first load may be long as all addresses have to be resolved.
+        	Resolved address ... all addresses need to be translate into IP address to be persisted
         */
-        public string? filename {get; set; }
-        /*
-        	persistent acl comes from config file, they can't be removed.
-        */
-    public bool persistent { get; set; default =false;}
+		public uint32[] ipAddresses{get; set;}
+		
+		public string getIpAddressesToString() {
+			string result = "";
+			for (int i = 0; i < ipAddresses.length ; i++) {
+				result += ipAddresses[i].to_string();
+				if(i < ipAddresses.length - 1)
+					result += "|";
+			}
+			return result;
+		}
+		public void setIpAddressesFromString(string ipaddresses) {
+			string[] ips = ipaddresses.split("|");
+			uint32[] result = new uint32[ips.length];
+			for(int i = 0; i < ips.length ; i++) {
+				try {
+					result[i] = (uint32)int.parse(ips[i]);
+				} catch (Error e) {
+					klog("setIpAddressesFromString : an error occured parsing address");
+				}
+			}
+			ipAddresses = result;
+		}
+		public void resolveAddress(string host) {
+			Resolver r = Resolver.get_default();
+				try {
+                    GLib.List<InetAddress> _list = r.lookup_by_name(host, null);
+                    ipAddresses = new uint32[_list.length()];
+                    int x=0;
+                    foreach(InetAddress ia in _list) {
+                        ipAddresses[x] = Utils.get_ip_from_inet(ia);
+                        x++;
+                    }
+                } catch (Error e) {
+                    kerrorlog(@"Acl.add_acl : Unable to resolved $(address) with error $(e.message)");
+                    return;
+                }
+         }
         /*
         	serialize
         */
-        public string to_json() {
-            klog("acl_tojson");
+        public Json.Object getJsonObject() {
             Json.Object object = new Json.Object();
             if(label != null)
                 object.set_string_member ("label", label);
             if(address != null)
                 object.set_string_member ("address", address );
             object.set_int_member ("port", port );
-            if(filename != null)
-                object.set_string_member ("filename", filename );
             object.set_string_member("type",acl_type.to_string());
             object.set_string_member("id",id);
-            object.set_boolean_member ("persistent", persistent );
+            object.set_string_member("ipaddresses", getIpAddressesToString() );
+            return object;
+        }        
+        public string to_json() {
             Json.Generator jg = new Json.Generator();
             Json.Node node = new Json.Node(Json.NodeType.OBJECT);
-            node.set_object(object);
+            node.set_object(getJsonObject());
             jg.set_root(node);
             return jg.to_data(null);
         }
@@ -116,12 +157,7 @@ namespace Kanet {
                 open_ports.add(a.port);
                 return;
             }  else {
-                Resolver r = Resolver.get_default();
-                try {
-                    GLib.List<InetAddress> _list = r.lookup_by_name(a.address, null);
-
-                    foreach(InetAddress ia in _list) {
-                        uint32 ip = Utils.get_ip_from_inet(ia);
+                    foreach(uint32 ip in a.ipAddresses) {
                         if(_acls.has_key(ip)) {
                             HashSet<int> _port_hash = _acls.get(ip);
                             _port_hash.add(a.port);
@@ -131,45 +167,9 @@ namespace Kanet {
                             _acls.set(ip, _port_hash);
                         }
                     }
-                } catch (Error e) {
-                    kerrorlog(@"Acl.add_acl : Unable to resolved $(a.address) with error $(e.message)");
-                    return;
-                }
             }
         }
-        /*
-        	this function is needed due to remove acl, if there's 2 vhosts in acls, if one is removed
-        	the ip address will be removed (same ip for diff hostname)
-        */
-        public void rebuild_acls_hash() {
-            _acls.clear();
-            foreach(Acl a in acls) {
-                add_acl(a);
-            }
-        }
-        public void remove_acl(string id) {
-            Acl acl = null;
-            foreach(Acl a in acls) {
-                if(a.id == id) {
-                    acl = a;
-                    break;
-                }
-            }
-            if(!acls.contains(acl))
-                return;
-            acls.remove(acl);
-            Resolver r = Resolver.get_default();
-            try {
-                GLib.List<InetAddress> _list = r.lookup_by_name(acl.address, null) ;
-                foreach(InetAddress a in _list) {
-                    if(_acls.has_key(Utils.get_ip_from_inet(a)))
-                        _acls.unset(Utils.get_ip_from_inet(a));
-                }
-            } catch (Error e) {
-                kerrorlog(@"Acls.remove_acl : Unable to resolved $(acl.address) with error $(e.message)");
-                return;
-            }
-        }
+ 
         public bool is_match(uint32 ip_dest, int port) {
             if(open_ports.contains(port))
                 return true;
@@ -177,23 +177,11 @@ namespace Kanet {
                 return _acls.get(ip_dest).contains(0) || _acls.get(ip_dest).contains(port);
             return false;
         }
-        public bool load_acls_from_config_file() {
-            ArrayList<Acl>? _acls = CONF.get_acls (_acl_type.to_string());
-            if(	_acls == null)
-                return false;
-            foreach (Acl a in _acls) {
-                add_acl(a);
-            }
-            return true;
-        }
         public string to_json() {
             Json.Object object = new Json.Object();
             Json.Array array = new Json.Array();
             foreach(Acl a in this.acls) {
-                klog("acl id : " + a.id);
-                Json.Object _node = new Json.Object();
-                _node.set_string_member ("id", a.id);
-                array.add_object_element(_node);
+                array.add_object_element(a.getJsonObject());
             }
             object.set_array_member("acls", array);
             Json.Generator jg = new Json.Generator();
@@ -208,6 +196,13 @@ namespace Kanet {
                 if(a.id == id) return a;
             }
             return null;
+        }
+        public void load_acls_from_db(KBase database) {
+        	ArrayList<Acl> acls = database.get_acls_from_db(this._acl_type);
+        	foreach(Acl a in acls) {
+				klog(@"add acl $(a.label)");
+				add_acl(a);
+			}
         }
     }
 }
