@@ -31,7 +31,6 @@ def configure(conf):
 	conf.check(lib='radiusclient-ng', uselib_store='radiusclient-ng', mandatory=True)
 	conf.check(lib='netfilter_conntrack', uselib_store='netfilter_conntrack', mandatory=True)
 	conf.check(lib='netfilter_queue', uselib_store='netfilter_queue', mandatory=True)
-	conf.check(lib='ncurses', uselib_store='ncurses', mandatory=True)	
 
 	prefix = conf.env['PREFIX']
 	if prefix == '/usr' or prefix == '/usr/' :

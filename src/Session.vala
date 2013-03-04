@@ -46,13 +46,17 @@ namespace Kanet {
         	we considere that user is disconnected and no acls should be open
         */
         public bool is_kanet_session_valid(long KANET_SESSION_TIMEOUT) {
-            return (TimeVal().tv_sec - last_seen.tv_sec) < KANET_SESSION_TIMEOUT;
+            long t = TimeVal().tv_sec - last_seen.tv_sec;
+	    klog(@"is_kanet_session_valid with KANET_SESSION_TIMEOUT : $KANET_SESSION_TIMEOUT");
+            return t < KANET_SESSION_TIMEOUT;
         }
         /*
         	Web session means the time a user need to re-authenticate
         */
         public bool is_web_session_valid(long WEB_SESSION_TIMEOUT) {
-            return (TimeVal().tv_sec - start_time.tv_sec) < WEB_SESSION_TIMEOUT;
+		long t = TimeVal().tv_sec - start_time.tv_sec;
+		 klog(@"is_web_session_valid with WEB_SESSION_TIMEOUT : $WEB_SESSION_TIMEOUT and diff = $t");
+            return t < WEB_SESSION_TIMEOUT;
         }
         public string to_json() {
             Json.Object object = new Json.Object();
@@ -73,7 +77,7 @@ namespace Kanet {
         public HashMap<uint32,Session> sessions = new HashMap<uint32,Session>();
 
         public void add_session(Session s) {
-            kerrorlog("Add session from : " + s.ip_src.to_string());
+            klog("Add session from : " + s.ip_src.to_string());
             sessions.set(s.ip_src,s);
         }
         public void remove_session(Session s) {
@@ -82,16 +86,16 @@ namespace Kanet {
         }
         public void update_session(uint32 ip_src) {
             if(!sessions.has_key(ip_src)) {
-                kerrorlog("Received update from unknow IP : " + ip_src.to_string());
+                klog("Received update from unknow IP : " + ip_src.to_string());
                 return;
             }
             Session s = sessions.get(ip_src);
             s.last_seen = TimeVal();
-            kerrorlog("Update session" +s.to_json());
+            klog("Update session : " +s.to_json());
         }
         public bool is_kanet_session_valid (uint32 ip_src, long KANET_SESSION_TIMEOUT, out Session session) {
             if(!sessions.has_key(ip_src)) {
-                kerrorlog("No session exists for this IP : " + get_ip_from_uint32(ip_src));
+                klog("No session exists for this IP : " + get_ip_from_uint32(ip_src));
                 return false;
             }
             session = sessions.get(ip_src);

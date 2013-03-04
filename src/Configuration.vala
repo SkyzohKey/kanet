@@ -32,19 +32,18 @@ namespace Kanet.Conf {
         	Retrieve a configuration value, string only.
         */
         private string? get_value (string name) {
+		klog(@"configuration get_value : $name", KLOG_LEVEL.DEBUG);
             Parser parser = new Parser();
             string result;
             try {
                 parser.load_from_file (config_filename);
-                // check in lowercase
-                result = parser.get_root().get_object().get_string_member(name.down());
-                // check in uppercase
-                if(result == null)
-                    result = parser.get_root().get_object().get_string_member(name.up());
+		var root_object = parser.get_root ().get_object ();
+                result = root_object.get_string_member(name);
             } catch (Error e) {
                 kerrorlog(e.message);
                 return null;
             }
+	    klog(@"configuration get_value : $name - result : $result", KLOG_LEVEL.DEBUG);
             return result;
         }
 
@@ -52,6 +51,7 @@ namespace Kanet.Conf {
         	Check all mandatory field from config file
         */
         public bool check_config_mandatory() {
+		klog(@"check_config_mandatory field", KLOG_LEVEL.DEBUG);
             // TODO Check mandatory PROXY vs STANDALONE
             string[] list = {"SERVER_URL",
                              "SERVER_PORT",
@@ -60,10 +60,10 @@ namespace Kanet.Conf {
                              "SSL_KEY_FILE",
                              "login_page",
                              "captive_portal_page",
+                             "database_connection_string",
                              "www_path",
                              "module_path",
                              "auth_module_name",
-                             "default_blacklist_message",
                              "bytes_quota",
                              "time_quota",
                              "update_msg",
@@ -72,6 +72,7 @@ namespace Kanet.Conf {
                              "update_error_msg"
                             };
             foreach(string s in list) {
+		klog(@"check_config_mandatory field : $s", KLOG_LEVEL.DEBUG);
                 string? val = get_configuration_value (s);
                 if(val != null && val != "") {
                     config_hash.set(s,val);

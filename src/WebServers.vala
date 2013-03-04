@@ -95,6 +95,7 @@ namespace Kanet {
             	What's available ?
             	GET /acls : list of all acls ?type=TypeAcl;
             	GET /acls/id : retrieve a acl
+            	PUT /acls/id : update a acl
             	POST /acls	=> a : create new acl => a  ?type=TypeAcl;
             	DELETE /acls/id : delete acl
         */
@@ -119,7 +120,7 @@ namespace Kanet {
                     string type = ((HashTable<string,string>)query).lookup("type");
                     //klog(@"type : $type");
                     switch (type) {
-                    case "blacklist" :
+                    case "bl" :
                         acl_type = AclType.BLACKLIST;
                         break;
                     case "default" :
@@ -145,12 +146,13 @@ namespace Kanet {
                 break;
             case "POST":
                 create_acl((string)msg.request_body.data);
+                msg.set_status(Soup.KnownStatusCode.OK);
                 break;
             case "DELETE" :
                 delete_acl(id);
+                msg.set_status(Soup.KnownStatusCode.OK);
                 break;
             }
-            msg.set_status(Soup.KnownStatusCode.NOT_FOUND);
         }
 
         private void blacklist_users_handler(Soup.Server server, Soup.Message msg, string path,
@@ -221,7 +223,7 @@ namespace Kanet {
             	update last_seen of Session. The response return a message
             	that could be displayed to user page.
             */
-            //klog("update_handler called");
+            klog("update_handler called");
             Kanet.Session session = null;
             if(!check_session(msg, client, out session)) { // user isn't authenticated
                 string error_response = CONF.get_configuration_value("update_error_msg");
@@ -494,29 +496,39 @@ namespace Kanet {
                 if(((Cookie)a).name == "kanet")
                     id = ((Cookie)a).value;
             });
-            if(id == null)
+            if(id == null) {
+                klog("Webserver - check_session failed unable to find a cookie");
                 return false;
+	    }
             uint32 ip_src;
             if(CONF.get_configuration_value("SERVER_MODE") != "PROXY") {
                 ip_src = Utils.get_ip(client.get_address().get_physical());
             } else {
                 ip_src = Utils.get_ip(msg.request_headers.get("X-Forwarded-For"));
             }
+	    klog(@"Webserver - check_session for ip : $ip_src and id : $id");
             session = get_valid_web_session(ip_src, id);
-            if(session != null)
+            if(session != null) {
+		 klog(@"Webserver - find a valid session");
                 return true;
+	    }
             /*
             	here session is not valid but request have a session cookie,
             	if the server have been stopped, session needs to be recover from db
             */
+            klog(@"Webserver - try_recover_session_from_db");
             if(try_recover_session_from_db(id)) {
+	
                 session = get_valid_web_session(ip_src, id);
                 if(session != null) {
+		    klog(@"Webserver - try_recover_session_from_db : successful session recovery");
                     return true;
                 } else {
+		    klog(@"Webserver - try_recover_session_from_db : find a session but it's not valid");
                     //remove cookie
                 }
             }
+	    klog(@"Webserver - try_recover_session_from_db failed");
             return false;
         }
         /*

@@ -12,10 +12,10 @@ bld.program(
         )
 
 bld.program(
-        packages      = 'Config kanetnetfilter gee-1.0 gmodule-2.0 json-glib-1.0 gnet-2.0 glib-2.0 sqlite3 posix curses',
+        packages      = 'Config gee-1.0 gmodule-2.0 json-glib-1.0 gnet-2.0 glib-2.0 sqlite3 posix',
         target        = 'kanet-acl',
-        uselib        = 'ncurses GLIB GMODULE GEE JSON GNET GLIB SQLITE3',
-        source        = 'kanet-acl.vala Acl.vala BlacklistUser.vala Configuration.vala KBaseSqlite.vala KBase.vala Log.vala Session.vala  User.vala Utils.vala',
+        uselib        = 'GLIB GMODULE GEE JSON GNET GLIB SQLITE3 POSIX GTHREAD LIBSOUP',
+        source        = 'kanet-acl.vala Acl.vala BlacklistUser.vala Configuration.vala KBaseSqlite.vala KBase.vala Log.vala Session.vala User.vala Utils.vala',
 	vapi_dirs='../vapi/ .',
 	includes = '../include/',
         vala_defines  = ['DEBUG']

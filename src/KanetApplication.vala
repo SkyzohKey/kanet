@@ -13,7 +13,7 @@ namespace Kanet {
     
         private long KANET_SESSION_TIMEOUT = 30; // 30 seconds
         private long WEB_SESSION_TIMEOUT = 2 * 60 * 60; // 2 hours
-        
+	private string TAG = "KanetApplication";        
         private uint64 queue_callback_counter = 0;
 
         private Acls blacklist_acls = new Acls(AclType.BLACKLIST);
@@ -39,7 +39,8 @@ namespace Kanet {
             /* 
             	Open database
              */
-            database = new KBaseSqlite(CONF.get_configuration_value("sqlite_connection_string"));
+            database = new KBaseSqlite(CONF.get_configuration_value("database_connection_string"));
+	    
             /*
             	Load from config file = persistent acls
             */
@@ -49,8 +50,9 @@ namespace Kanet {
 
             blacklist_users = database.get_blacklist_users_from_db();
             
-
-            admins = CONF.get_configuration_value("admins").split(",");
+	    string _admins = CONF.get_configuration_value("admins");
+	    if(_admins != null)
+	       admins = _admins.split(",");
             // Load authentication module
             auth_module = load_auth_plugin(CONF.get_configuration_value("module_path"),CONF.get_configuration_value("auth_module_name"));
 
@@ -276,6 +278,7 @@ namespace Kanet {
         	Server restart => recover session from db
         */
         private bool try_recover_session_from_db(string id) {
+	    klog(@"$TAG try_recover_session_from_db with id : $id", KLOG_LEVEL.DEBUG);
             User user = null;
             Session session = database.get_session_from_db(id, out user);
             if(session != null) {
@@ -286,9 +289,11 @@ namespace Kanet {
                 User u = get_user_with_login(user.login);
                 session.user = u;
                 sessions.add_session(session);
-                klog("Recover session id="+session.session_id+" mark="+session.mark.to_string());
+                klog(@"$TAG Recover session id="+session.session_id+" mark="+session.mark.to_string());
                 return true;
-            }
+            } else {
+		klog(@"$TAG Recover session failed");
+		}
             return false;
         }
         /*
@@ -296,6 +301,7 @@ namespace Kanet {
         	returns the message that will display to user.
         */
         private string update_session (Session session, string ip) {
+		klog(@"update_session for ip : $ip", KLOG_LEVEL.DEBUG);
             TimeVal start_time = TimeVal();
             string message = "";
             if(blacklist_users.has_key(session.user.login)) {
@@ -313,7 +319,7 @@ namespace Kanet {
             string duration = Utils.format_seconds(session.user.duration);
             message = CONF.get_configuration_value("update_msg").replace("$upbytes",upbytes).replace("$downbytes",downbytes).replace("$duration",duration);
             kaccesslog("UPDATE " + session.user.login + " - " + ip);
-            klog("UPDATE-SESSION "+  (TimeVal().tv_usec - start_time.tv_usec).to_string() + " : " + session.to_json());
+            klog("UPDATE-SESSION "+  (TimeVal().tv_usec - start_time.tv_usec).to_string() + " : " + session.to_json(),KLOG_LEVEL.DEBUG);
             return message;
         }
         private bool is_web_session_valid(uint32 ip_src, string id, out Session session) {

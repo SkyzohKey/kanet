@@ -10,12 +10,12 @@ namespace Kanet {
     class KBaseSqlite : KBase, GLib.Object {
 
         Sqlite.Database db;
-
+	private string TAG = "Database :\t";
         public KBaseSqlite(string connection_string) {
 
             int rc = Sqlite.Database.open (connection_string, out db);
             if (rc != Sqlite.OK) {
-                kerrorlog("Can't open database : " + db.errmsg (),KLOG_LEVEL.ERROR);
+                kerrorlog(@"$TAG Can't open database : " + db.errmsg (),KLOG_LEVEL.ERROR);
             }
         }
         public void close() {
@@ -26,10 +26,14 @@ namespace Kanet {
         */
         public User? get_user_from_db (string login) {
             Sqlite.Statement stmt;
+	    klog(@"$TAG get_user_from_db login : $login", KLOG_LEVEL.DEBUG);
             int rc;
-            string sql = @"select login,upbytes,downbytes,duration,bytesquota,timequota from users where login='$(login)' LIMIT 1;";
-            if((rc = db.prepare (sql, -1, out stmt, null)) == 1)
+            string sql = @"select login,upbytes,downbytes,duration,bytesquota,timequota from user where login='$(login)' LIMIT 1;";
+		 klog(@"$TAG request $sql", KLOG_LEVEL.DEBUG);
+            if((rc = db.prepare (sql, -1, out stmt, null)) == 1) {
+		
                 return null;
+		}
             rc = stmt.step();
             if(rc == Sqlite.ROW) {
                 User u = new User(login);
@@ -44,23 +48,23 @@ namespace Kanet {
         }
         public void save_user_to_db(User user) {
             int rc;
-            string sql = @"insert into users ('login','passwd') values ('$(user.login)','');";
+            string sql = @"insert into user ('login','password') values ('$(user.login)','');";
             if ((rc = db.exec(sql)) == 1) {
-                kerrorlog ("SQL error: "+ db.errmsg ());
+                kerrorlog (@"$TAG SQL error: "+ db.errmsg ());
             }
         }
         public void update_user(User user) {
             int rc;
-            string sql = @"update users set upbytes=$(user.up_bytes), downbytes=$(user.down_bytes), duration=$(user.duration), bytesquota=$(user.bytes_quota) , timequota=$(user.time_quota) where login='$(user.login)';";
+            string sql = @"update user set upbytes=$(user.up_bytes), downbytes=$(user.down_bytes), duration=$(user.duration), bytesquota=$(user.bytes_quota) , timequota=$(user.time_quota) where login='$(user.login)';";
             if ((rc = db.exec (sql)) == 1) {
-                kerrorlog ("SQL error: "+ db.errmsg ());
+                kerrorlog (@"$TAG SQL error: "+ db.errmsg ());
             }
         }
         public void remove_user(User user) {
             int rc;
-            string sql = @"delete from users where login='$(user.login)';";
+            string sql = @"delete from user where login='$(user.login)';";
             if ((rc = db.exec (sql)) == 1) {
-                kerrorlog ("SQL error: "+ db.errmsg ());
+                kerrorlog (@"$TAG SQL error: "+ db.errmsg ());
             }
         }
         /*
@@ -73,6 +77,7 @@ namespace Kanet {
         */
         public Session? get_session_from_db (string id, out User? user) {
             Sqlite.Statement stmt;
+		klog(@"$TAG get_session_from_db id : $id", KLOG_LEVEL.DEBUG);
             int rc;
             string sql = @"select login, mark, start_time, ip_src from session where id='$(id)' LIMIT 1;";
             if((rc = db.prepare (sql, -1, out stmt, null)) == 1)
@@ -81,16 +86,20 @@ namespace Kanet {
             if(rc == Sqlite.ROW) {
                 string login = stmt.column_text(0);
                 user = get_user_from_db (login);
-                if(user == null)
+                if(user == null) {
+		    klog(@"$TAG get_session_from_db : failed to retrieve a user");
                     return null;
+		}
                 Session s = new  Session(user, stmt.column_int(3));
                 s.session_id = id;
                 s.mark = stmt.column_int(1);
                 TimeVal t = TimeVal();
                 t.tv_sec = (long)stmt.column_int64(2);
                 s.start_time = t;
+		klog(@"$TAG get_session_from_db : successfully session recover");
                 return s;
             }
+       	klog(@"$TAG get_session_from_db : failed to retrieve a session");
             return null;
         }
         public void update_session(Session s) {}
@@ -98,9 +107,9 @@ namespace Kanet {
         public void save_session_to_db(Session s) {
             int rc;
             string sql = @"insert into session ('id','ip_src','mark','start_time','login') values ('$(s.session_id)',$(s.ip_src),$(s.mark),$(s.start_time.tv_sec),'$(s.user.login)');";
-            klog(sql, KLOG_LEVEL.DEBUG);
+            klog(@"$TAG request : $sql", KLOG_LEVEL.DEBUG);
             if ((rc = db.exec(sql)) == 1) {
-                kerrorlog ("SQL error: "+ db.errmsg ());
+                kerrorlog (@"$TAG SQL error: "+ db.errmsg ());
             }
         }
         /*
@@ -111,9 +120,9 @@ namespace Kanet {
             Sqlite.Statement stmt;
             int rc;
             string sql = @"select address,ipaddresses,id,label,port,type from acl where type=$((int)type);";
-            klog(sql, KLOG_LEVEL.DEBUG);
+            klog(@"$TAG request $sql", KLOG_LEVEL.DEBUG);
             if((rc = db.prepare (sql, -1, out stmt, null)) == 1) {
-                kerrorlog("get_acls_from_db() :" + db.errmsg());
+                kerrorlog(@"$TAG get_acls_from_db() :" + db.errmsg());
                 return acls;
             }
             while((rc = stmt.step()) == Sqlite.ROW) {
@@ -138,7 +147,7 @@ namespace Kanet {
         	Sqlite.Statement stmt;
             int rc;
             string sql = @"select address,ipaddresses,id,label,port,type from acl where id='$(id)' LIMIT 1;";
-            klog(sql, KLOG_LEVEL.DEBUG);
+            klog(@"$TAG request $sql", KLOG_LEVEL.DEBUG);
             if((rc = db.prepare (sql, -1, out stmt, null)) == 1)
                 return null;
             rc = stmt.step();
@@ -157,9 +166,9 @@ namespace Kanet {
         public void save_acl_to_db(Acl acl) {
         	int rc;
 			string sql = @"insert into acl ('address', 'id', 'label', 'port', 'type', 'ipaddresses') values ('$(acl.address)', '$(acl.id)','$(acl.label)',$(acl.port), $((int)acl.acl_type), '$(acl.getIpAddressesToString())');";
-			klog(sql, KLOG_LEVEL.DEBUG);
+			klog(@"$TAG request $sql", KLOG_LEVEL.DEBUG);
 			if ((rc = db.exec(sql)) == 1) {
-				kerrorlog ("SQL error: "+ db.errmsg ());
+				kerrorlog (@"$TAG SQL error: "+ db.errmsg ());
 			}
         }
         /*

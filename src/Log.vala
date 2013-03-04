@@ -6,13 +6,13 @@ using GLib;
 
 namespace Kanet.Log {
     public enum KLOG_LEVEL {
-        DEBUG,
         INFO,
         ERROR,
-        FATAL
+        FATAL,
+	DEBUG
     }
     public static void klog(string message, KLOG_LEVEL log_level = KLOG_LEVEL.DEBUG ) {
-		if(log_level >= LOG_LEVEL)
+		if(log_level <= LOG_LEVEL)
 			stdout.printf("%s",message + "\n");
         k_log("[KANET] " + message, log_level);
     }
@@ -24,7 +24,7 @@ namespace Kanet.Log {
         k_log("[KANET-ACCESS] " + message, log_level);
     }
     private static void k_log(string message, KLOG_LEVEL log_level  = KLOG_LEVEL.INFO ) {
-        if(log_level >= LOG_LEVEL)
+        if(log_level <= LOG_LEVEL)
             Posix.syslog(Posix.LOG_USER,"%s", message);
     }
 }

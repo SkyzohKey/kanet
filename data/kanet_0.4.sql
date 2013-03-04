@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS 'user' (
   'login' TEXT PRIMARY KEY,
+  'password' TEXT,
   'upbytes' INTEGER UNSIGNED,
-  'downbytes' INTEGER UNSIGNED
-  'duration' INTEGER UNSIGNED
-  'bytesquota' INTEGER UNSIGNED
+  'downbytes' INTEGER UNSIGNED,
+  'duration' INTEGER UNSIGNED,
+  'bytesquota' INTEGER UNSIGNED,
   'timequota' INTEGER UNSIGNED
 );
 CREATE TABLE IF NOT EXISTS 'acl' (

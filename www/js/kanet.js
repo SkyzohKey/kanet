@@ -9,7 +9,7 @@ function  DoIt() {
                 $('#ServerMessage').text(text);
           },
 	error: function(req,message) {
-		$('#ServerMessage').text(message);		
+		window.location ="/www/login.html";		
 	}
     });
 };
