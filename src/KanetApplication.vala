@@ -90,6 +90,7 @@ namespace Kanet {
             web_servers.get_acls_list.connect(get_acls_list);
             web_servers.get_acl.connect(get_acl);
             web_servers.delete_acl.connect(delete_acl);
+            web_servers.update_acl.connect(update_acl);
             web_servers.create_acl.connect(create_acl);
             web_servers.get_blacklist_users_json_list.connect(get_blacklist_users_json_list);
             web_servers.get_blacklist_user_json.connect(get_blacklist_user_json);
@@ -332,6 +333,7 @@ namespace Kanet {
         }
         // acls
         private string get_acls_list(AclType acl_type) {
+			klog(@"$TAG get_acls_list $acl_type");
             switch(acl_type) {
             case AclType.BLACKLIST :
                 return blacklist_acls.to_json();
@@ -343,6 +345,7 @@ namespace Kanet {
             return "";
         }
         private string get_acl(string id) {
+			klog(@"$TAG get_acl with id : $id");
             Acl a = null;
             a = blacklist_acls.get_acl(id);
             if(a != null)
@@ -356,13 +359,46 @@ namespace Kanet {
             return "";
         }
         private void delete_acl(string id) {
-            //blacklist_acls.remove_acl(id);
+			klog(@"$TAG delete_acl with id : $id");
+			database.remove_acl(id);
+			reloadAclsOnAclChanged(id);
+		}	
+		private void reloadAclsOnAclChanged(string id) {
+			klog(@"$TAG reloadAclsOnAclChanged with id : $id");
+			Acl a = null;
+			a = blacklist_acls.get_acl(id);
+            if(a != null) {
+				blacklist_acls.clear();
+				blacklist_acls.load_acls_from_db(database);
+				return;
+			}
+            a = open_acls.get_acl(id);
+            if(a != null) {
+				open_acls.clear();
+				open_acls.load_acls_from_db(database);
+				return;
+			}
+            a = default_acls.get_acl(id);
+            if(a != null) {
+				default_acls.clear();
+				default_acls.load_acls_from_db(database);
+				return;
+			}			
+        }        
+        private void update_acl(string message) {
+			klog(@"$TAG update_acl with : $message");
+			Acl a = Acl.get_acl_from_json(message);
+            if(a == null)
+                return;
+            database.update_acl(a);
+            reloadAclsOnAclChanged(a.id);
         }
         private void create_acl(string message) {
+			klog(@"$TAG create_acl with : $message");
             Acl a = Acl.get_acl_from_json(message);
             if(a == null)
                 return;
-            blacklist_acls.add_acl(a);
+            database.save_acl_to_db(a);
         }
         /*
         	Authentication module loading

@@ -27,6 +27,7 @@ namespace Kanet {
         	Acls
         */
         public abstract ArrayList<Acl> get_acls_from_db(AclType type) ;
+        public abstract void update_acl(Acl acl) ;
         public abstract void remove_acl(string id) ;
         public abstract Acl? get_acl_from_db(string id);
         public abstract void save_acl_to_db(Acl acl);

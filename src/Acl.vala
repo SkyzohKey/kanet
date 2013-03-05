@@ -133,6 +133,11 @@ public class Acls {
     public Acls(AclType acl_type) {
         this._acl_type = acl_type;
     }
+    public void clear() {
+		open_ports = new HashSet<int>();
+		_acls = new HashMap<uint32,HashSet<int>>();
+		acls = new ArrayList<Acl>();
+	}
     public string dump () {
         StringBuilder sb = new StringBuilder();
         sb.append("open ports:\n");

@@ -142,7 +142,13 @@ namespace Kanet {
 			 string sql = @"delete from acl where id ='$(id)';";
              db.exec(sql);
         }
-
+        public void update_acl(Acl acl) {
+            int rc;
+            string sql = @"update acl set label='$(acl.label)', address='$(acl.address)', ipaddresses='$(acl.getIpAddressesToString())', port=$(acl.port ) where id='$(acl.id)';";
+            if ((rc = db.exec (sql)) == 1) {
+                kerrorlog (@"$TAG SQL error: "+ db.errmsg ());
+            }
+        }
         public Acl? get_acl_from_db(string id) {
         	Sqlite.Statement stmt;
             int rc;
