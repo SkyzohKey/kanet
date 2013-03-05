@@ -117,7 +117,21 @@ public int port {get; set; default = 0;}
     	deserialize [TODO]
     */
     public static Acl? get_acl_from_json (string json) {
-        klog(json);
+        try {
+			var parser = new Json.Parser ();
+			parser.load_from_data (json, -1);
+			var root_object = parser.get_root ().get_object ();
+			Acl a = new Acl();
+			a.label = root_object.get_string_member ("label");
+			a.address = root_object.get_string_member ("address");
+			a.port = (int)root_object.get_int_member ("port");
+			a.acl_type = (AclType)root_object.get_int_member ("type");
+			a.id = root_object.get_string_member ("id");
+			a.setIpAddressesFromString(root_object.get_string_member ("ipaddresses"));
+			return a;
+		} catch (Error e) {
+			kerrorlog(@"Error parsing Acl with json : $json");
+		}
         return null;
     }
 }
