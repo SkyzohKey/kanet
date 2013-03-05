@@ -100,10 +100,12 @@ public int port {get; set; default = 0;}
             object.set_string_member ("label", label);
         if(address != null)
             object.set_string_member ("address", address );
-        object.set_int_member ("port", port );
+        if(port != 0)
+			object.set_int_member ("port", port );
         object.set_int_member("type",acl_type);
         object.set_string_member("id",id);
-        object.set_string_member("ipaddresses", getIpAddressesToString() );
+        if(ipAddresses.length > 0)
+			object.set_string_member("ipaddresses", getIpAddressesToString() );
         return object;
     }
     public string to_json() {
@@ -122,12 +124,18 @@ public int port {get; set; default = 0;}
 			parser.load_from_data (json, -1);
 			var root_object = parser.get_root ().get_object ();
 			Acl a = new Acl();
-			a.label = root_object.get_string_member ("label");
-			a.address = root_object.get_string_member ("address");
-			a.port = (int)root_object.get_int_member ("port");
-			a.acl_type = (AclType)root_object.get_int_member ("type");
-			a.id = root_object.get_string_member ("id");
-			a.setIpAddressesFromString(root_object.get_string_member ("ipaddresses"));
+			if(root_object.has_member("label"))
+				a.label = root_object.get_string_member ("label");
+			if(root_object.has_member("address"))
+				a.address = root_object.get_string_member ("address");
+			if(root_object.has_member("port"))
+				a.port = (int)root_object.get_int_member ("port");
+			if(root_object.has_member("type"))
+				a.acl_type = (AclType)root_object.get_int_member ("type");
+			if(root_object.has_member("id"))	
+				a.id = root_object.get_string_member ("id");
+			if(root_object.has_member("ipaddresses"))
+				a.setIpAddressesFromString(root_object.get_string_member ("ipaddresses"));
 			return a;
 		} catch (Error e) {
 			kerrorlog(@"Error parsing Acl with json : $json");

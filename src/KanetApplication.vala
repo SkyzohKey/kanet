@@ -390,15 +390,36 @@ namespace Kanet {
 			Acl a = Acl.get_acl_from_json(message);
             if(a == null)
                 return;
-            database.update_acl(a);
-            reloadAclsOnAclChanged(a.id);
+            Acl b = database.get_acl_from_db(a.id);
+            // Check if address have changed
+            if(a.address != b.address) {
+				a.compute(true);
+				database.update_acl(a);
+				reloadAclsOnAclChanged(a.id);
+			} else {
+				database.update_acl(a);
+			}
         }
         private void create_acl(string message) {
 			klog(@"$TAG create_acl with : $message");
             Acl a = Acl.get_acl_from_json(message);
             if(a == null)
                 return;
-            database.save_acl_to_db(a);
+            a.compute(true);
+            switch(a.acl_type) {
+            case AclType.BLACKLIST :
+                blacklist_acls.add_acl(a);
+                break;
+            case AclType.DEFAULT :
+                default_acls.add_acl(a);
+                break;
+            case AclType.OPEN :
+                open_acls.add_acl(a);
+                break;
+            default:
+                break;
+            }
+            
         }
         /*
         	Authentication module loading
